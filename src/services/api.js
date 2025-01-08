@@ -2,7 +2,7 @@ import axios from "axios";
 
 
 
-const API_BASE_URL = "http://147.93.33.155:8880/api/pedidos";
+const API_BASE_URL = "https://dubyapp.com.br/api/pedidos";
 
 const pedidoService = {
 
