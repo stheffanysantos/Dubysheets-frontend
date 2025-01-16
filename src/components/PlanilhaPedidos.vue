@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <div class="filtro-container">
-      <img src="@/assets/iconbolota.png" alt="icone ao lado do filtro" height="70" />
+      <img class="imagem-filtro"  src="@/assets/iconbolota.png" alt="icone ao lado do filtro" height="70" />
       <div class="form-group">
         <label for="filtroStatus">Status:</label>
         <select id="filtroStatus" v-model="filtros.status">
@@ -117,7 +117,7 @@
                   <img src="@/assets/lapis.png" alt="Editar" class="icon-img">
                 </button>
                 <button @click="excluirPedido(pedido.id)" class="btn btn-delete">
-                  <img src="@/assets/lixeira.png" alt="Excluir" class="icon-img">
+                  <img src="@/assets/lixeira.png" alt="Editar" class="icon-img">
                 </button>
               </td>
             </tr>
@@ -470,21 +470,109 @@ tr:hover {
   background: #9a2e2f;
 }
 
-/* Ajuste responsivo para telas menores */
 @media (max-width: 768px) {
-  .main-container {
+  .app {
+    max-width: 100%;
+    padding: 10px;
+  }
+
+  .filtro-container,
+  .form-container,
+  .relatorio-container {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
     flex-direction: column;
   }
 
-  .form-container,
-  .relatorio-container,
-  .filtro-container {
-    width: 100%;
-    padding: 20px;
+  .filtro-container input,
+  .filtro-container select {
+    margin-bottom: 10px;
   }
 
-  .app {
+  .main-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 6px;
+  }
+
+  .btn {
+    padding: 6px 10px;
+  }
+
+  .image-header img {
+    width: 100%;
+  }
+  .imagem-filtro {
+    width: 80%; /* Reduzindo a largura da imagem para 50% */
+    height: auto; /* Mantendo a proporção */
+  }
+}
+
+@media (max-width: 480px) {
+  .filtro-container {
+    gap: 8px;
+  }
+
+  .filtro-container .image-header {
+    margin-bottom: 10px;
+  }
+
+  .filtro-container input,
+  .filtro-container select {
+    margin-bottom: 8px;
+  }
+
+  h1, h2, h3 {
+    font-size: 18px;
+  }
+
+  button {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  input, select, textarea {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  table {
+    font-size: 10px;
+  }
+
+  .btn {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+
+  .form-container,
+  .relatorio-container {
+    padding: 8px;
+    font-size: 12px;
+    overflow-x: auto;
+  }
+
+  .image-header img {
     max-width: 100%;
   }
+
+  .imagem-filtro {
+    width: 75%; /* Reduzindo ainda mais a largura da imagem em telas menores */
+    height: auto; /* Mantendo a proporção */
+    align-items: center;
+  }
+
 }
 </style>
