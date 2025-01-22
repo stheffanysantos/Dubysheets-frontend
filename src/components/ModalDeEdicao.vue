@@ -37,18 +37,18 @@
           <div class="form-group">
             <label for="status">Status:</label>
             <select id="status" v-model="pedidoTemp.status" required>
-              <option value="pendente">Pendente</option>
-              <option value="entregue">Entregue</option>
-              <option value="cancelado">Cancelado</option>
-              <option value="retirado">Retirar no local</option>
+              <option value="Pendente">PENDENTE</option>
+              <option value="Entregue">ENTREGUE</option>
+              <option value="Cancelado">CANCELADO</option>
+              <option value="Retirar no local">RETIRAR NO LOCAL</option>
             </select>
           </div>
 
           <div class="form-group">
             <label for="turno">Turno:</label>
             <select id="turno" v-model="pedidoTemp.turno" required>
-              <option value="manha">Manhã</option>
-              <option value="tarde">Tarde</option>
+              <option value="manha">MANHÃ</option>
+              <option value="tarde">TARDE</option>
             </select>
           </div>
 
@@ -59,7 +59,7 @@
 
           <div class="form-group">
             <label for="previsao">Previsão:</label>
-            <input type="date" id="previsao" v-model="pedidoTemp.previsao" required />
+            <input type="date" id="previsao" v-model="pedidoTemp.previsao" />
           </div>
 
           <button type="submit" class="btn">Salvar</button>
@@ -72,6 +72,7 @@
 
 <script>
 import pedidoService from "@/services/api";
+import Swal from "sweetalert2";
 
 export default {
   props: {
@@ -105,6 +106,19 @@ export default {
     },
   },
   methods: {
+
+    formatarData(data) {
+      if (!data || isNaN(new Date(data).getTime())) {
+        return "--/--/--"; // Retorna o valor padrão para datas nulas ou inválidas
+      }
+      const date = new Date(data);
+      const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+      const dia = String(localDate.getDate()).padStart(2, "0");
+      const mes = String(localDate.getMonth() + 1).padStart(2, "0");
+      const ano = localDate.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    },
+
   quebrarLinha() {
     let texto = this.pedidoTemp.observacao.replace(/\n/g, "");
     texto = texto.slice(0, 25); // Limita a 50 caracteres
@@ -122,25 +136,46 @@ export default {
       const day = String(dateObj.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     },
+
     async salvarPedidoEditado() {
       try {
         const pedidoEnviado = { ...this.pedidoTemp };
         const response = await pedidoService.updatePedido(pedidoEnviado.id, pedidoEnviado);
 
         if (response) {
-          // Emite um evento para o componente pai recarregar a lista
-          this.$emit("recarregarPedidos");
-          this.fecharModal();
+          // Exibe o SweetAlert2 de sucesso
+          Swal.fire({
+            title: 'Pedido Atualizado!',
+            text: 'As alterações no pedido foram salvas com sucesso.',
+            icon: 'success',
+            timer: 2000, // O alerta desaparece automaticamente após 2 segundos
+            showConfirmButton: false, // Remove o botão de confirmação
+          }).then(() => {
+            // Emite o evento para o componente pai recarregar a lista de pedidos
+            this.$emit("atualizarPedidos");  // Garantir que o evento de recarregamento seja disparado
+            this.fecharModal(); // Fecha o modal automaticamente após o alerta
+          });
         } else {
-          alert("Erro ao atualizar pedido.");
+          Swal.fire({
+            title: 'Erro!',
+            text: 'Não foi possível atualizar o pedido.',
+            icon: 'error',
+            timer: 2000,
+            showConfirmButton: false,
+          });
         }
       } catch (error) {
         console.error("Erro ao salvar pedido editado:", error);
-        alert("Não foi possível salvar as alterações. Tente novamente.");
+        Swal.fire({
+          title: 'Erro!',
+          text: 'Não foi possível salvar as alterações. Tente novamente.',
+          icon: 'error',
+          timer: 2000,
+          showConfirmButton: false,
+        });
       }
     },
-
-
+    
     fecharModal() {
       this.$emit("fechar");
     },
@@ -213,28 +248,22 @@ textarea {
 
 button {
   cursor: pointer;
+  width: 100%; /* Faz os botões ocuparem 100% da largura do contêiner */
+  padding: 10px 20px;
+  border-radius: 6px;
+  margin-top: 10px;
 }
 
 button[type="submit"] {
   background: #73ba60;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  margin-top: 20px;
 }
 
 button[type="button"] {
   background: #dc3545;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  margin-top: 10px;
-}
-
-button:hover {
-  opacity: 0.9;
 }
 
 button[type="submit"]:hover {
@@ -245,6 +274,10 @@ button[type="button"]:hover {
   background-color: #c82333;
 }
 
+button:hover {
+  opacity: 0.9;
+}
+
 .btn-close {
   background: #322871;
   color: white;
@@ -253,9 +286,25 @@ button[type="button"]:hover {
   border-radius: 6px;
   align-self: flex-start;
   margin-top: 20px;
+  width: 91%; /* Faz o botão de fechar ocupar 100% da largura do contêiner */
 }
 
 .btn-close:hover {
-  background-color: #12283f;
+  background-color: #322871;
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .button-container {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 90%;
+  }
 }
 </style>

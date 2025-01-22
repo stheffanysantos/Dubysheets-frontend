@@ -6,19 +6,19 @@
         <label for="filtroStatus">Status:</label>
         <select id="filtroStatus" v-model="filtros.status">
           <option value="">Todos</option>
-          <option value="pendente">Pendente</option>
-          <option value="entregue">Entregue</option>
-          <option value="cancelado">Cancelado</option>
-          <option value="retirado no local">Retirar no local</option>
+          <option value="pendente">PENDENTE</option>
+          <option value="Entregue">ENTREGUE</option>
+          <option value="Cancelado">CANCELADO</option>
+          <option value="Retirar no local">RETIRAR NO LOCAL</option>
         </select>
       </div>
       <div class="form-group">
         <label for="filtroProduto">Produto:</label>
-        <input type="text" id="filtroProduto" v-model="filtros.produto" />
+        <input type="text" id="filtroProduto" v-model="filtros.produto" placeholder="Digite o produto" />
       </div>
       <div class="form-group">
-        <label for="filtroData">Data:</label>
-        <input type="date" id="filtroData" v-model="filtros.data" />
+        <label for="filtroFornecedor">Fornecedor:</label>
+        <input type="text" id="filtroFornecedor" v-model="filtros.empresa" placeholder="Digite o fornecedor" />
       </div>
     </div>
 
@@ -53,10 +53,10 @@
           <div class="form-group">
             <label for="status">Status:</label>
             <select id="status" v-model="novoPedido.status" required>
-              <option value="pendente">Pendente</option>
-              <option value="entregue">Entregue</option>
-              <option value="cancelado">Cancelado</option>
-              <option value="retirado no local">Retirar no local</option>
+              <option value="Pendente">PENDENTE</option>
+              <option value="Entregue">ENTREGUE</option>
+              <option value="Cancelado">CANCELADO</option>
+              <option value="Retirar no local">RETIRAR NO LOCAL</option>
             </select>
           </div>
           <div class="form-group">
@@ -74,7 +74,7 @@
 
           <div class="form-group">
             <label for="previsao">Previsão:</label>
-            <input type="date" id="previsao" v-model="novoPedido.previsao" required />
+            <input type="date" id="previsao" v-model="novoPedido.previsao"/>
           </div>
           <button type="submit" class="btn">Cadastrar</button>
         </form>
@@ -104,7 +104,7 @@
               <td>{{ formatarData(pedido.data) }}</td>
               <td>{{ pedido.produto }}</td>
               <td>{{ pedido.quantidade }}</td>
-              <td>{{ pedido.preco || 'N/A' }}</td>
+              <td>{{ formatarPreco(pedido.preco) }}</td>
               <td>{{ pedido.unidade }}</td>
               <td>{{ pedido.empresa }}</td>
               <td>{{ formatarData(pedido.previsao) }}</td>
@@ -128,8 +128,7 @@
 
     <!-- Modal de Edição -->
     <ModalDeEdicao
-    
-:isVisible="isEditing"
+    :isVisible="isEditing"
     :pedidoEditado="pedidoEditado"
     @fechar="fecharModal"
     @atualizarPedidos="getPedidos"
@@ -183,18 +182,23 @@ export default {
       }
       return this.pedidos.filter((pedido) => {
         const matchStatus = this.filtros.status ? pedido.status === this.filtros.status : true;
-        const matchProduto = this.filtros.produto
-          ? pedido.produto.toLowerCase().includes(this.filtros.produto.toLowerCase())
-          : true;
-        const matchData = this.filtros.data
-          ? pedido.data && this.formatarData(pedido.data) === this.filtros.data
-          : true;
+        const matchProduto = this.filtros.produto ? pedido.produto.toLowerCase().includes(this.filtros.produto.toLowerCase()) : true;
+        const matchFornecedor = this.filtros.empresa ? pedido.empresa.toLowerCase().includes(this.filtros.empresa.toLowerCase()) : true;
+        const matchData = this.filtros.data ? pedido.data && this.formatarData(pedido.data) === this.filtros.data : true;
 
-        return matchStatus && matchProduto && matchData;
+        return matchStatus && matchProduto && matchFornecedor && matchData;
       });
     },
   },
   methods: {
+      formatarPreco(valor) {
+      if (!valor) return "R$ 0,00";
+      return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(valor);
+    },
+
     quebrarLinha() {
       let texto = this.novoPedido.observacao;
       
@@ -204,13 +208,17 @@ export default {
     },
         
     formatarData(data) {
-        if (!data) return "";
-        const date = new Date(data);
-        const dia = String(date.getDate()).padStart(2, "0");
-        const mes = String(date.getMonth() + 1).padStart(2, "0");
-        const ano = date.getFullYear();
-        return `${dia}/${mes}/${ano}`;
-      },
+      if (!data || isNaN(new Date(data).getTime())) {
+        return "--/--/--"; // Retorna o valor padrão para datas nulas ou inválidas
+      }
+      const date = new Date(data);
+      const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+      const dia = String(localDate.getDate()).padStart(2, "0");
+      const mes = String(localDate.getMonth() + 1).padStart(2, "0");
+      const ano = localDate.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    },
+
     resetForm() {
       this.novoPedido = {
         data: "",
@@ -235,25 +243,38 @@ export default {
       }
     },
     async getPedidos() {
-      this.isLoading = true; 
+      this.isLoading = true;
       try {
         const pedidos = await pedidoService.getPedidos();
-        this.pedidos = Array.isArray(pedidos) ? pedidos : [];
+        // Ordena os pedidos pelo ID, mais recente primeiro
+        this.pedidos = Array.isArray(pedidos)
+          ? pedidos.sort((a, b) => b.id - a.id)
+          : [];
       } catch (error) {
         console.error("Erro ao carregar pedidos:", error.response?.data || error.message);
         this.pedidos = [];
       } finally {
-        this.isLoading = false; 
+        this.isLoading = false;
       }
     },
     async addPedido() {
       try {
-        const pedidoAdicionado = await pedidoService.addPedido(this.novoPedido);
+        // Garante que previsao será null caso esteja vazio
+        const pedidoParaSalvar = {
+          ...this.novoPedido,
+          previsao: this.novoPedido.previsao ? this.novoPedido.previsao : null,
+        };
+
+        // Envia o pedido ajustado para o serviço
+        const pedidoAdicionado = await pedidoService.addPedido(pedidoParaSalvar);
+
         if (pedidoAdicionado && pedidoAdicionado.id) {
-          this.pedidos.push(pedidoAdicionado);
-          this.getPedidos(); 
+          this.pedidos.push(pedidoAdicionado); // Adiciona o novo pedido à lista
+          this.getPedidos(); // Atualiza a lista de pedidos
+          this.$emit("atualizarPedidos"); 
         }
-        this.resetForm();
+
+        this.resetForm(); // Limpa o formulário após salvar
       } catch (error) {
         console.error("Erro ao adicionar pedido:", error.response?.data || error.message);
       }
@@ -283,6 +304,8 @@ export default {
         cancelButtonColor: "#412884",
         confirmButtonText: "Sim, excluir",
         cancelButtonText: "Cancelar",
+        width: '80%',
+        padding: '30px',
       });
 
       if (isConfirmed) {
@@ -320,7 +343,7 @@ export default {
 .app {
   font-family: Nunito, Tahoma, Geneva, Verdana, sans-serif;
   margin: 20px auto;
-  max-width: 90%;
+  max-width: 98%;
   background: #f4f7fb;
   border-radius: 10px;
   padding: 20px;
@@ -338,6 +361,7 @@ export default {
   display: flex;
   gap: 20px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .form-container,
@@ -345,19 +369,23 @@ export default {
   background: #ffffff;
   border: 1px solid #ddd;
   border-radius: 10px;
-  padding: 20px;
+  padding: 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+  width: 98%;
 }
 
 .form-container {
-  margin-right: 20px;
+  margin-right: 25px;
   padding: 30px;
   align-items: center;
+  text-transform: uppercase;
 }
 
 .relatorio-container {
-  width: 100%;
+  width: 95%;
   margin-left: 0;
+  padding: 20px;
 }
 
 h1 {
@@ -367,10 +395,12 @@ h1 {
 }
 
 h2, h3 {
-  font-size: 20px;
+  font-size: 18px;
   color: #12283f;
   margin-bottom: 20px;
+  padding: 10px;
 }
+
 
 .quebra-estrutura {
   flex-direction: row;
@@ -416,7 +446,7 @@ button:hover {
 }
 
 table {
-  width: 100%;
+  width: 90%;
   border-collapse: collapse;
   margin-top: 20px;
   background-color: #ffffff;
@@ -426,7 +456,7 @@ table {
 
 th, td {
   text-align: center;
-  padding: 7px;
+  padding: 5px;
   border-bottom: 1px solid #ddd;
   white-space: pre-wrap; 
   word-wrap: break-word; 
@@ -472,7 +502,7 @@ tr:hover {
 
 @media (max-width: 768px) {
   .app {
-    max-width: 100%;
+    max-width: 87%;
     padding: 10px;
   }
 
@@ -518,6 +548,12 @@ tr:hover {
     width: 80%; /* Reduzindo a largura da imagem para 50% */
     height: auto; /* Mantendo a proporção */
   }
+
+  .custom-swal {
+  max-width: 400px !important; /* Evita que fique muito grande */
+  border-radius: 10px; /* Borda arredondada */
+  font-size: 14px; /* Tamanho de fonte menor */
+}
 }
 
 @media (max-width: 480px) {
@@ -572,7 +608,14 @@ tr:hover {
     width: 75%; /* Reduzindo ainda mais a largura da imagem em telas menores */
     height: auto; /* Mantendo a proporção */
     align-items: center;
-  }
+  } 
+
+  .custom-swal {
+  max-width: 400px !important; /* Evita que fique muito grande */
+  border-radius: 10px; /* Borda arredondada */
+  font-size: 14px; /* Tamanho de fonte menor */
+}
+  
 
 }
 </style>

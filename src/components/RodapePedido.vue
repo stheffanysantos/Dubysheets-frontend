@@ -41,6 +41,26 @@
   .footer-content a:hover {
     text-decoration: underline;
   }
+
+  @media (max-width: 600px) {
+  .footer {
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+
+  .footer-content {
+    gap: 3px;
+  }
+
+  .footer-content p {
+    margin: 5px 0;
+  }
+
+  .footer-content a {
+    display: block; /* Faz os links ficarem em linhas separadas */
+    font-size: 0.9rem;
+  }
+}
   </style>
   
   
