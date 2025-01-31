@@ -1,3 +1,4 @@
+
 <template>
   <div class="app">
     <div class="filtro-container">
@@ -271,14 +272,16 @@ export default {
         if (pedidoAdicionado && pedidoAdicionado.id) {
           this.pedidos.push(pedidoAdicionado); // Adiciona o novo pedido à lista
           this.getPedidos(); // Atualiza a lista de pedidos
-          this.$emit("atualizarPedidos"); 
+          this.$emit("atualizarPedidos");         
         }
 
         this.resetForm(); // Limpa o formulário após salvar
+        this.$router.push("/CadastroPedido");
       } catch (error) {
         console.error("Erro ao adicionar pedido:", error.response?.data || error.message);
       }
     },
+    
     async salvarPedidoEditado() {
       try {
         const response = await pedidoService.updatePedido(this.pedidoEditado.id, this.pedidoEditado);

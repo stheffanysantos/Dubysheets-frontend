@@ -203,18 +203,15 @@ export default {
       icon: 'success',
       title: 'Status atualizado!',
       text: 'O status do pedido foi alterado com sucesso.',
-      timer: 2000, // O alerta desaparece automaticamente após 2 segundos
+      timer: 2000,
       showConfirmButton: false,
     }).then(() => {
-      // Emite um evento para o componente pai recarregar os pedidos
-      this.$emit("atualizarPedidos");
-
-      // Se houver um modal aberto, ele será fechado
-      this.fecharModal?.();
+      // Recarrega a página para atualizar os dados
+      window.location.reload();
     });
 
   } catch (error) {
-    console.error("Erro ao atualizar status:", error);
+    console.error('Erro ao atualizar status:', error);
     Swal.fire({
       icon: 'error',
       title: 'Erro ao atualizar o status',

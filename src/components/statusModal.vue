@@ -29,13 +29,12 @@ export default {
     };
   },
   methods: {
-async confirmarAtualizacao() {
+    async confirmarAtualizacao() {
   if (!this.pedido) {
-    alert("Pedido não encontrado.");
+    alert('Pedido não encontrado.');
     return;
   }
 
-  // Exibe o SweetAlert2 para confirmação
   const result = await Swal.fire({
     title: 'Tem certeza?',
     text: 'Você está prestes a marcar o pedido como ENTREGUE.',
@@ -47,22 +46,10 @@ async confirmarAtualizacao() {
     cancelButtonText: 'Cancelar',
   });
 
-      if (result.isConfirmed) {
-        // Se o usuário confirmar, emite o evento de atualização
-        this.$emit("atualizarStatus", this.pedido.id, this.statusSelecionado);
-
-        // Exibe o alerta de sucesso e fecha automaticamente após 2 segundos
-        Swal.fire({
-          title: 'Status Atualizado!',
-          text: 'O pedido foi marcado como ENTREGUE.',
-          icon: 'success',
-          timer: 2000, // Alerta desaparecendo após 2 segundos
-          showConfirmButton: false, // Remove o botão de confirmação
-        }).then(() => {
-          this.$emit('fechar'); // Fecha o modal automaticamente
-        });
-      }
-    },
+  if (result.isConfirmed) {
+    this.$emit('atualizarStatus', this.pedido.id, this.statusSelecionado);
+  }
+},
   },
 };
 </script>
